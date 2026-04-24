@@ -2,13 +2,18 @@ package com.apps.quantitymeasurement;
 
 public class Length {
 
-    private double value;
-    private LengthUnit unit;
+    private final double value;
+    private final LengthUnit unit;
+
+    // tolerance for floating-point comparison
+    private static final double EPSILON = 0.0001;
 
     // ===== ENUM =====
     public enum LengthUnit {
-        FEET(12.0),     // 1 ft = 12 inches
-        INCHES(1.0);    // base unit = inches
+        FEET(12.0),
+        INCHES(1.0),
+        YARDS(36.0),
+        CENTIMETERS(0.393701);
 
         private final double conversionFactor;
 
@@ -35,29 +40,23 @@ public class Length {
         return this.value * this.unit.getConversionFactor();
     }
 
-    // ===== COMPARE METHOD =====
+    // ===== COMPARE (FIXED) =====
     public boolean compare(Length that) {
         if (that == null) return false;
 
-        return Double.compare(
-                this.convertToBaseUnit(),
-                that.convertToBaseUnit()
-        ) == 0;
+        double thisValue = this.convertToBaseUnit();
+        double thatValue = that.convertToBaseUnit();
+
+        return Math.abs(thisValue - thatValue) < EPSILON;
     }
 
     // ===== EQUALS =====
     @Override
     public boolean equals(Object obj) {
-
-        // Reflexive
         if (this == obj) return true;
-
-        // Null & type check
         if (obj == null || getClass() != obj.getClass()) return false;
 
         Length that = (Length) obj;
-
-        // Delegate to compare
         return this.compare(that);
     }
 
@@ -65,20 +64,5 @@ public class Length {
     @Override
     public int hashCode() {
         return Double.hashCode(convertToBaseUnit());
-    }
-
-    // ===== MAIN (DEMO) =====
-    public static void main(String[] args) {
-        Length l1 = new Length(1.0, LengthUnit.FEET);
-        Length l2 = new Length(12.0, LengthUnit.INCHES);
-
-        System.out.println("Input: Quantity(1.0, \"feet\") and Quantity(12.0, \"inches\")");
-        System.out.println("Output: Equal (" + l1.equals(l2) + ")");
-
-        Length l3 = new Length(1.0, LengthUnit.INCHES);
-        Length l4 = new Length(1.0, LengthUnit.INCHES);
-
-        System.out.println("Input: Quantity(1.0, \"inch\") and Quantity(1.0, \"inch\")");
-        System.out.println("Output: Equal (" + l3.equals(l4) + ")");
     }
 }
