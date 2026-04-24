@@ -5,7 +5,6 @@ public class Length {
     private final double value;
     private final LengthUnit unit;
 
-    // tolerance for floating-point comparison
     private static final double EPSILON = 0.0001;
 
     // ===== ENUM =====
@@ -31,38 +30,57 @@ public class Length {
         if (unit == null) {
             throw new IllegalArgumentException("Unit cannot be null");
         }
+        if (!Double.isFinite(value)) {
+            throw new IllegalArgumentException("Value must be finite");
+        }
+
         this.value = value;
         this.unit = unit;
     }
 
-    // ===== CONVERT TO BASE UNIT (INCHES) =====
+    // ===== BASE CONVERSION (INCHES) =====
     private double convertToBaseUnit() {
         return this.value * this.unit.getConversionFactor();
     }
 
-    // ===== COMPARE (FIXED) =====
-    public boolean compare(Length that) {
-        if (that == null) return false;
+    // ===== INSTANCE CONVERSION =====
+    public Length convertTo(LengthUnit targetUnit) {
+        if (targetUnit == null) {
+            throw new IllegalArgumentException("Target unit cannot be null");
+        }
 
-        double thisValue = this.convertToBaseUnit();
-        double thatValue = that.convertToBaseUnit();
+        double base = convertToBaseUnit();
+        double converted = base / targetUnit.getConversionFactor();
 
-        return Math.abs(thisValue - thatValue) < EPSILON;
+        return new Length(converted, targetUnit);
     }
 
-    // ===== EQUALS =====
+    // ===== EQUALITY =====
+    private boolean compare(Length that) {
+        if (that == null) return false;
+
+        double thisVal = this.convertToBaseUnit();
+        double thatVal = that.convertToBaseUnit();
+
+        return Math.abs(thisVal - thatVal) < EPSILON;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
 
         Length that = (Length) obj;
-        return this.compare(that);
+        return compare(that);
     }
 
-    // ===== HASHCODE =====
     @Override
     public int hashCode() {
         return Double.hashCode(convertToBaseUnit());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%.2f %s", value, unit);
     }
 }
