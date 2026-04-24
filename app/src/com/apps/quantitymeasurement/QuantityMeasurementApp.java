@@ -2,43 +2,69 @@ package com.apps.quantitymeasurement;
 
 public class QuantityMeasurementApp {
 
-    public static void demonstrateLengthComparison(
-            double value1, Length.LengthUnit unit1,
-            double value2, Length.LengthUnit unit2) {
+    // ===== UC5 STATIC CONVERSION API =====
+    public static double convert(double value,
+                                 Length.LengthUnit source,
+                                 Length.LengthUnit target) {
 
-        Length l1 = new Length(value1, unit1);
-        Length l2 = new Length(value2, unit2);
+        if (!Double.isFinite(value)) {
+            throw new IllegalArgumentException("Value must be finite");
+        }
 
-        System.out.println("Input: Quantity(" + value1 + ", " + unit1 +
-                ") and Quantity(" + value2 + ", " + unit2 + ")");
-        System.out.println("Output: Equal (" + l1.equals(l2) + ")");
-        System.out.println();
+        if (source == null || target == null) {
+            throw new IllegalArgumentException("Units cannot be null");
+        }
+
+        // convert to base (inches)
+        double base = value * source.getConversionFactor();
+
+        // convert to target
+        return base / target.getConversionFactor();
     }
 
+    // ===== OVERLOADED METHOD (RAW VALUES) =====
+    public static Length demonstrateLengthConversion(double value,
+                                                     Length.LengthUnit from,
+                                                     Length.LengthUnit to) {
+
+        double result = convert(value, from, to);
+        return new Length(result, to);
+    }
+
+    // ===== OVERLOADED METHOD (OBJECT BASED) =====
+    public static Length demonstrateLengthConversion(Length length,
+                                                     Length.LengthUnit toUnit) {
+
+        if (length == null) {
+            throw new IllegalArgumentException("Length cannot be null");
+        }
+
+        return length.convertTo(toUnit);
+    }
+
+    // ===== EQUALITY DEMO =====
+    public static boolean demonstrateLengthEquality(Length l1, Length l2) {
+        return l1.equals(l2);
+    }
+
+    // ===== MAIN METHOD =====
     public static void main(String[] args) {
 
-        // Feet ↔ Inches
-        demonstrateLengthComparison(1.0, Length.LengthUnit.FEET,
-                12.0, Length.LengthUnit.INCHES);
+        // UC5 Conversion examples
+        System.out.println(convert(1.0, Length.LengthUnit.FEET, Length.LengthUnit.INCHES)); // 12
+        System.out.println(convert(3.0, Length.LengthUnit.YARDS, Length.LengthUnit.FEET)); // 9
+        System.out.println(convert(36.0, Length.LengthUnit.INCHES, Length.LengthUnit.YARDS)); // 1
 
-        // Yards ↔ Feet
-        demonstrateLengthComparison(1.0, Length.LengthUnit.YARDS,
-                3.0, Length.LengthUnit.FEET);
+        // Object-based conversion
+        Length length = new Length(2.0, Length.LengthUnit.YARDS);
+        Length converted = demonstrateLengthConversion(length, Length.LengthUnit.INCHES);
 
-        // Yards ↔ Inches
-        demonstrateLengthComparison(1.0, Length.LengthUnit.YARDS,
-                36.0, Length.LengthUnit.INCHES);
+        System.out.println(converted); // 72 inches
 
-        // CM ↔ Inches
-        demonstrateLengthComparison(1.0, Length.LengthUnit.CENTIMETERS,
-                0.393701, Length.LengthUnit.INCHES);
+        // Equality check
+        Length l1 = new Length(30.48, Length.LengthUnit.CENTIMETERS);
+        Length l2 = new Length(1.0, Length.LengthUnit.FEET);
 
-        // Feet ↔ Yards
-        demonstrateLengthComparison(3.0, Length.LengthUnit.FEET,
-                1.0, Length.LengthUnit.YARDS);
-
-        // CM ↔ Feet
-        demonstrateLengthComparison(30.48, Length.LengthUnit.CENTIMETERS,
-                1.0, Length.LengthUnit.FEET);
+        System.out.println("Equal? " + l1.equals(l2)); // true
     }
 }
